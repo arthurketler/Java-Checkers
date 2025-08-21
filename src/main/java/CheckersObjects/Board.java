@@ -1,78 +1,109 @@
 package CheckersObjects;
 
-import java.awt.*;
+import ketler.Tools.ANSIPrinting;
 
 public class Board {
-    // deletar
-    public static void main(String[] args) {
-        printBoard();
-    }
-    // deletar
-
     //Matrix of spaces to place the pieces
-    private Pieces[][] matrix = new Pieces[8][8];
-
-    private static final int squareSize = 1;
-    private static final int squareAmmount = 8;
-    private static final char square = '■';
-    private static final char pawn = '♟';
-    private static final char suamae = '♕';
-
-    private static void printBoard() {
-        // top boundaries
-        Board.printBoundaries();
-
-        // loop for horizontal square
-        for (int i = 0; i < Board.squareAmmount; i++) {
-            // separation horizontal lines
-            //if (i != 0) Board.boardHorizontalLine();
-
-            // -------- lines itself
-            // left border
-            String line = Board.boardSingleLineBorder();
-
-            // middle part
-            for (int j = 0; j < Board.squareAmmount; j++) {
-                // interLine
-                //line += j == 0 ? "" : square;
-
-                // pieces
-                line += String.valueOf('a').repeat(Board.squareSize);
+    private Piece[][] matrix = new Piece[BOARD_SIZE][BOARD_SIZE]; // KEEP PRIVATE
+    
+    // amount of squares in the board
+    private static final byte BOARD_SIZE = 10; // KEEP PRIVATE
+    
+    // conversion from char to coordinate
+    private static final byte CHAR_CONVERSION_RATE = 97;
+    
+    public Board() {
+        this.populateMatrix();
+    }
+    
+    /**
+     * Prints the board using ANSI formatting
+     */
+    public void printBoard() {
+        // prints the upper tabulation
+        Board.printUpperTabulation();
+        
+        // iterates through the lines
+        for (int lineCoordinate = 0; lineCoordinate < Board.BOARD_SIZE; lineCoordinate++) {
+            
+            // prints the lines left tabulation
+            System.out.print(ANSIPrinting.formatANSICode(String.valueOf(ANSIPrinting.getYellowBackground())) +
+                    String.valueOf(lineCoordinate).charAt(String.valueOf(lineCoordinate).length() - 1) // gets the last number of the coordinate
+                    + ANSIPrinting.getResetAnsi());
+            
+            // iterates through the columns
+            for (int columnCoordinate = 0; columnCoordinate < Board.BOARD_SIZE; columnCoordinate++) {
+                System.out.print(ANSIPrinting.formatSquareAndPieceToPrint(this.matrix[lineCoordinate][columnCoordinate], lineCoordinate, columnCoordinate));
             }
-
-            // right border
-            line += Board.boardSingleLineBorder();
-
-            // repeats the line
-            String finalLine = line;
-            for (int j = 0; j < Board.squareSize - 1; j++) {
-                finalLine += String.format("%n%s", line);
+            System.out.println();
+        }
+    }
+    
+    /**
+     * Used in instancing the matrix
+     */
+    private void populateMatrix() {
+        // iterates through the lines
+        for (int lineCoordinate = 0; lineCoordinate < Board.BOARD_SIZE; lineCoordinate++) {
+            
+            // checks lines
+            byte topMiddleIndex = (BOARD_SIZE / 2);
+            byte bottomMiddleIndex = (byte) (topMiddleIndex - 1);
+            if (lineCoordinate <= bottomMiddleIndex - 1 || lineCoordinate >= topMiddleIndex + 1) {
+            
+                // iterates through the columns
+                for (int columnCoordinate = 0; columnCoordinate < Board.BOARD_SIZE; columnCoordinate++) {
+                
+                    // check column
+                    if (Board.isBlackSquare(lineCoordinate, columnCoordinate)) {
+                        this.matrix[lineCoordinate][columnCoordinate] = new Piece(lineCoordinate < BOARD_SIZE / 2);
+                    }
+                }
             }
-
-            System.out.println(finalLine);
-
         }
-
-        // bottom boundaries
-        Board.printBoundaries();
     }
-
-    private static String boardSingleLineBorder() {
-        return String.valueOf(square).repeat(Board.squareSize);
+    
+    /**
+     * Returns true if the square should be black(populated and played ones)
+     * @param xCoordinate the horizontal coordinate
+     * @param yCoordinate the vertical coordinate
+     * @return true if black square
+     */
+    public static boolean isBlackSquare(int yCoordinate, int xCoordinate) { // KEEPS ALWAYS PRIVATE
+        // if even add 1 to intercalate
+        if (yCoordinate % 2 == 0) xCoordinate += 1;
+        
+        // if even black else white
+        return xCoordinate % 2 == 0;
     }
-
-    private static void boardHorizontalLine() {
-        int boardSize = (Board.squareAmmount + 2); // gets the square ammount
-        boardSize *= Board.squareSize; // multiplies the ammount
-        boardSize += Board.squareAmmount - 1; // Adding lines
-
-
-        System.out.println(String.valueOf(Board.square).repeat(boardSize));
-    }
-
-    private static void printBoundaries() {
-        for (int i = 0; i < squareSize; i++) {
-            boardHorizontalLine();
+    
+    /**
+     * Prints the top tabulation
+     */
+    private static void printUpperTabulation() {
+        for (int i = -1; i < BOARD_SIZE; i++) {
+            System.out.print(ANSIPrinting.formatANSICode(String.valueOf(ANSIPrinting.getYellowBackground())) +
+                    String.valueOf(i == -1 ? String.valueOf(ANSIPrinting.getBlankSpace()) : coordinatesNumberToChar(i))
+                    + ANSIPrinting.getResetAnsi());
         }
+        System.out.println();
+    }
+    
+    /**
+     * Converts the coordinates
+     * @param number input in index + 1
+     * @return equivalent char
+     */
+    private static char coordinatesNumberToChar(int number) {
+        return (char) (number + CHAR_CONVERSION_RATE);
+    }
+    
+    /**
+     * Converts the coordenates
+     * @param character input as char
+     * @return equivalent coordinate in index + 1
+     */
+    private static int coordinatesCharToNumber(char character) {
+        return ((int) character) - CHAR_CONVERSION_RATE;
     }
 }
